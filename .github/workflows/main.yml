@@ -1,22 +1,24 @@
-name: workflow
-on: push
+name: Melon Global Ticket Watcher
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # 每 5 分鐘監控一次
+  workflow_dispatch:        # 也可以手動觸發
+
 jobs:
-  job:
+  check_ticket:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
     steps:
-      - uses: actions/checkout@v1
-      - name: Prepare
-        run: npm ci
-      - name: Lint
-        uses: mooyoul/tslint-actions@master
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Check Tickets
+        uses: ./  # 指向你本地 index.js 的 Action
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pattern: '*.ts'
-      - name: Build
-        run: npm run build
-      - name: Publish
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: npx semantic-release
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          product-id: '211217'       # 改成你演出頁 prodId
+          schedule-id: '100001'      # 改成你對應時間的場次 ID
+          seat-id: '218,217,216,219,A,M,R,E,T,D,N,C'
+          slack-incoming-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          message: '🎫 有票啦！快來搶票：https://tkglobal.melon.com/performance/index.htm?prodId=211217'
